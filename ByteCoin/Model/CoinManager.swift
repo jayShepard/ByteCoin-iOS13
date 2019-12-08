@@ -9,8 +9,8 @@
 import Foundation
 
 protocol CoinManagerDelegate {
-    func didFailWithError(error: Error)
-    func didUpdateCurrency(_ coinManager: CoinManager)
+    func didFailWithError(_ coinManager: CoinManager, error: Error)
+    func didUpdateCurrency(_ coinManager: CoinManager, bitcoin: Double?)
 }
 
 struct CoinManager {
@@ -30,14 +30,26 @@ struct CoinManager {
             let session = URLSession(configuration: .default)
             let task = session.dataTask(with: url) { (data, response, error) in
                 if error != nil {
-                    self.delegate?.didFailWithError(error: error!)
+                    self.delegate?.didFailWithError(self, error: error!)
                     return
                 }
                 if let safeData = data {
-                    print(String(data: safeData, encoding: .utf8))
+                    let parsedData = self.parseJSON(safeData)
+                    self.delegate?.didUpdateCurrency(self, bitcoin: parsedData)
                 }
             }
             task.resume()
+        }
+    }
+    
+    func parseJSON(_ data: Data) -> Double? {
+        let decoder = JSONDecoder()
+        do {
+            let decodedData = try decoder.decode(CoinData.self, from: data)
+            return decodedData.last
+        } catch {
+            delegate?.didFailWithError(self, error: error)
+            return nil
         }
     }
 }

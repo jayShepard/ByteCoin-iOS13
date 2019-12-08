@@ -43,11 +43,14 @@ class ViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDele
         print(selectedCoinCurrency)
     }
     
-    func didFailWithError(error: Error) {
+    func didFailWithError(_ coinManager: CoinManager, error: Error) {
         print(error)
     }
     
-    func didUpdateCurrency(_ coinManager: CoinManager) {
+    func didUpdateCurrency(_ coinManager: CoinManager, bitcoin: Double?) {
+        DispatchQueue.main.async {
+            self.bitcoinLabel.text = String(format: "%.2f", bitcoin ?? 0.00)
+        }
         
     }
 }
